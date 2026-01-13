@@ -1,0 +1,115 @@
+services:
+  gluetun:
+    image: qmcgaw/gluetun:latest
+    container_name: gluetun
+    cap_add:
+      - NET_ADMIN
+    devices:
+      - /dev/net/tun:/dev/net/tun
+    environment:
+      - TZ=Europe/Brussels
+      - VPN_SERVICE_PROVIDER=nordvpn
+      - VPN_TYPE=openvpn
+      - OPENVPN_USER=${NORD_USER}
+      - OPENVPN_PASSWORD=${NORD_PASS}
+      - SERVER_COUNTRIES=Belgium
+    ports:
+      - "8080:8080"
+      - "6881:6881"
+      - "6881:6881/udp"
+    restart: unless-stopped
+
+  qbittorrent:
+    image: lscr.io/linuxserver/qbittorrent:latest
+    container_name: qbittorrent
+    network_mode: "service:gluetun"
+    depends_on:
+      - gluetun
+    environment:
+      - PUID=501
+      - PGID=20
+      - TZ=Europe/Brussels
+      - UMASK=002
+      - WEBUI_PORT=8080
+      # DISABLE_CHOWN is irrelevant now since /config isn't a bind mount
+    volumes:
+      - qbittorrent_config:/config
+      - "/Volumes/storage/Media/Downloads:/downloads"
+    restart: unless-stopped
+
+  prowlarr:
+    image: lscr.io/linuxserver/prowlarr:latest
+    container_name: prowlarr
+    environment:
+      - PUID=501
+      - PGID=20
+      - TZ=Europe/Brussels
+      - UMASK=002
+    ports:
+      - "9696:9696"
+    volumes:
+      - prowlarr_config:/config
+    restart: unless-stopped
+
+  radarr:
+    image: lscr.io/linuxserver/radarr:latest
+    container_name: radarr
+    environment:
+      - PUID=501
+      - PGID=20
+      - TZ=Europe/Brussels
+      - UMASK=002
+    ports:
+      - "7878:7878"
+    volumes:
+      - radarr_config:/config
+      - "/Volumes/storage/Media/Movies:/movies"
+      - "/Volumes/storage/Media/Downloads:/downloads"
+    restart: unless-stopped
+
+  sonarr:
+    image: lscr.io/linuxserver/sonarr:latest
+    container_name: sonarr
+    environment:
+      - PUID=501
+      - PGID=20
+      - TZ=Europe/Brussels
+      - UMASK=002
+    ports:
+      - "8989:8989"
+    volumes:
+      - sonarr_config:/config
+      - "/Volumes/storage/Media/TV Shows:/tv"
+      - "/Volumes/storage/Media/Downloads:/downloads"
+    restart: unless-stopped
+
+  overseerr:
+    image: lscr.io/linuxserver/overseerr:latest
+    container_name: overseerr
+    environment:
+      - PUID=501
+      - PGID=20
+      - TZ=Europe/Brussels
+      - UMASK=002
+    ports:
+      - "5055:5055"
+    volumes:
+      - overseerr_config:/config
+    restart: unless-stopped
+  
+  flaresolverr:
+    image: ghcr.io/flaresolverr/flaresolverr:latest
+    container_name: flaresolverr
+    environment:
+      - LOG_LEVEL=info
+      - TZ=Europe/Brussels
+    ports:
+      - "8191:8191"
+    restart: unless-stopped
+
+volumes:
+  qbittorrent_config:
+  prowlarr_config:
+  radarr_config:
+  sonarr_config:
+  overseerr_config:
