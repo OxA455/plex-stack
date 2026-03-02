@@ -132,11 +132,7 @@ Open each service in a browser:
 
 ### Prowlarr (Indexers)
 
-Add public indexers:
-
-- **YTS** → Movies → tag `movies`
-- **EZTV** → TV → tag `tv`
-- **BitSearch** → Movies + TV → tags `movies`, `tv`
+Add indexers
 
 Ensure all indexers test **green**.
 
